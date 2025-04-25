@@ -1,0 +1,16 @@
+This #KQL query for #MicrosoftDefender shows all clicked URLs in the last 12 hours that were not logged at delivery time via EmailUrlInfo — perfect for uncovering hidden phishing links missed in email scanning.
+
+// Finds clicks without matching delivery logs
+let DeliveryLoggedUrls = EmailUrlInfo
+    | where isnotempty(Url)
+    | project NetworkMessageId, Url;
+UrlClickEvents
+| where Timestamp > ago(12h) //set to any time frame
+| where isnotempty(Url) and isnotempty(NetworkMessageId)
+| join kind=leftanti (DeliveryLoggedUrls) on NetworkMessageId, Url
+| project Timestamp, AccountUpn, Url, NetworkMessageId
+// | where //add additional filters here
+| order by Timestamp desc
+
+
+#ThreatHunting #M365Defender #BlueTeam #Kusto #CyberSecurity
