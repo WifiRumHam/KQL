@@ -1,0 +1,15 @@
+KQL for threat hunting: Join EmailEvents with EmailUrlInfo on NetworkMessageId, then summarize unique URLs per message. Helps prioritize emails with high URL diversity
+#KQL query for #MicrosoftDefender
+Set time frame window in GUI or add your own. Very demanding query, start with a small window.
+
+let RecentMessages = 
+    EmailEvents
+    | project NetworkMessageId, Subject, SenderFromAddress, Timestamp;
+EmailUrlInfo
+| join kind=inner (
+    RecentMessages
+) on NetworkMessageId
+| summarize UniqueUrls = dcount(Url), 
+            URLs = makeset(Url) 
+    by NetworkMessageId, Subject, SenderFromAddress, Timestamp
+| order by UniqueUrls desc
